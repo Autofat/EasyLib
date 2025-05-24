@@ -7,6 +7,7 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 .melos_tool/
+pubspec.lock
 
 # Android related
 android/.gradle/
