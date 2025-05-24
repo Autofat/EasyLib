@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:easy_lib/services/qr_validation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
@@ -12,8 +14,18 @@ class QrScanPage extends StatefulWidget {
 class _QrScanPageState extends State<QrScanPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
+  bool isProcessing = false;
   String result = '';
+
   @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller?.pauseCamera();
+    }
+    controller?.resumeCamera();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
@@ -48,66 +60,70 @@ class _QrScanPageState extends State<QrScanPage> {
         final bookData =
             await QrValidationService.validateQrCode(scanData.code!);
 
-        if (mounted) {
-          if (bookData != null) {
-            print('Book data: $bookData');
-            // Navigate to book details page with book data
-            Navigator.pushNamed(
-              context,
-              '/bookdetails',
-              arguments: bookData,
-            );
-          } else {
-            // Show error dialog
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  title: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red),
-                      SizedBox(width: 10),
-                      Text('Buku Tidak Ditemukan'),
-                    ],
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.error_outline, size: 100, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text(
-                        'QR Code yang dipindai tidak terdaftar dalam database. Silakan coba QR Code lain.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        controller.resumeCamera();
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'OK',
-                        style: TextStyle(color: Colors.white),
-                      ),
+        if (bookData != null && mounted) {
+          print('Book data: $bookData');
+          // Navigate to book details page with book data
+          Navigator.pushNamed(
+            context,
+            '/bookdetails',
+            arguments: bookData,
+          );
+        } else {
+          // Show error dialog
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                title: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Buku Tidak Ditemukan'),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline, size: 100, color: Colors.red),
+                    SizedBox(height: 16),
+                    Text(
+                      'QR Code yang dipindai tidak terdaftar dalam database. Silakan coba QR Code lain.',
+                      textAlign: TextAlign.center,
                     ),
                   ],
-                );
-              },
-            );
-          }
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      controller.resumeCamera();
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      'OK',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
   }
 }

@@ -28,5 +28,17 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+
+	<!-- CAMERA -->
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs camera access to scan QR codes</string>
+    
+    <!-- Add microphone permissions if needed -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs microphone access</string>
+    
+    <!-- Add security settings -->
+    <key>com.apple.security.device.camera</key>
+    <true/>
 </dict>
 </plist>

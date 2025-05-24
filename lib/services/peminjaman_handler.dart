@@ -28,7 +28,9 @@ class PeminjamanService {
 
       if (response.statusCode == 200) {
         if (data['status'] == 'success' && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+          final List<Map<String, dynamic>> allBooks =
+              List<Map<String, dynamic>>.from(data['data']);
+          return allBooks.where((book) => book['returned'] == 0).toList();
         }
       }
       throw Exception(data['message'] ?? 'Failed to load borrowed books');

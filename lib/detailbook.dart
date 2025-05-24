@@ -89,7 +89,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   Future<void> _checkIfBookIsBorrowed() async {
     final borrowedBooks = await PeminjamanService.getBorrowedBooks();
     for (final b in borrowedBooks) {
-      if (b['buku']['id'] == book!.id && b['status'] == 'dipinjam') {
+      if (b['buku']['id'] == book!.id && b['returned'] == 0) {
         setState(() {
           isBorrowed = true;
           borrowId = b['id'];
@@ -433,6 +433,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   void _showConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Konfirmasi Peminjaman'),
@@ -445,6 +446,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
+
+                if (!mounted) return;
                 showDialog(
                   context: context,
                   barrierDismissible: false,
@@ -466,6 +469,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     _showErrorDialog(context, result['message']);
                   }
                 } catch (e) {
+                  if (!mounted) return;
                   Navigator.of(context).pop();
                   _showErrorDialog(context, 'Terjadi kesalahan: $e');
                 }
