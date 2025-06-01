@@ -1,12 +1,15 @@
 import 'dart:convert';
+import 'package:easy_lib/config/appConfig.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io' show Platform;
 import 'auth_bridge.dart';
 
 class PeminjamanService {
-  static String baseUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:8000/api'
-      : 'http://localhost:8000/api';
+  static String baseUrl = AppConfig.apiBaseUrl;
+
+  // Platform.isAndroid
+  //     ? 'http://10.0.2.2:8000/api'
+  //     : 'http://localhost:8000/api';
 
   // Get list of borrowed books - matches getPeminjaman controller method
   static Future<List<Map<String, dynamic>>> getBorrowedBooks() async {

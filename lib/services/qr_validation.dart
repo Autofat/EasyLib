@@ -1,7 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'dart:io' show Platform;
-
 class QrValidationService {
   static Future<String?> validateQrCode(String qrCode) async {
     try {

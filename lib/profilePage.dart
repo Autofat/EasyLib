@@ -1,3 +1,4 @@
+import 'package:easy_lib/config/appConfig.dart';
 import 'package:easy_lib/services/peminjaman_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -348,9 +349,12 @@ class BookCard extends StatelessWidget {
         );
       } else {
         // If not a URL, construct the server URL
-        final baseUrl = Platform.isAndroid
-            ? 'http://10.0.2.2:8000'
-            : 'http://localhost:8000';
+        final baseUrl = AppConfig.baseUrl;
+
+        // Platform.isAndroid
+        //     ? 'http://10.0.2.2:8000'
+        //     : 'http://localhost:8000';
+
         final imageUrl = '$baseUrl/$imagePath';
         print('Loading constructed URL image: $imageUrl');
         return Image.network(

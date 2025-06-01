@@ -1,3 +1,4 @@
+import 'package:easy_lib/booklist.dart';
 import 'package:easy_lib/models/book.dart';
 import 'package:easy_lib/models/category.dart';
 import 'package:easy_lib/services/auth_bridge.dart';
@@ -37,7 +38,10 @@ class HomePage extends StatelessWidget {
               children: [
                 Header(),
                 CategoriesSection(),
-                RecommendationSection()
+                RecommendationSection(),
+                SizedBox(
+                  height: 20,
+                ),
               ],
             )
           ],
@@ -264,8 +268,7 @@ class _CategoriesSectionState extends State<CategoriesSection> {
               ),
               IconButton(
                   onPressed: () {
-                    Navigator.of(context)
-                        .pushNamed('/search'); // BELUM DI ROUTE KE SEARCH
+                    Navigator.of(context).pushNamed('/search');
                   },
                   icon: Icon(Icons.more_horiz)),
             ],
@@ -310,8 +313,8 @@ class _CategoryItemState extends State<CategoryItem> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.of(context).pushNamed('/search',
-            arguments: widget.title); // BELUM DI ATUR KE SEARCH DAN FILLTER
+        // Navigate to BookListPage with category name
+        Navigator.of(context).pushNamed('/search'); // Use the category title
       },
       child: Container(
         width: 120,

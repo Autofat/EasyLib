@@ -1,12 +1,14 @@
 import 'dart:convert';
+import 'package:easy_lib/config/appConfig.dart';
 import 'package:http/http.dart' as http;
 import 'package:easy_lib/models/category.dart';
 import 'dart:io' show Platform;
 
 class CategoryService {
-  static String baseUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:8000/api'
-      : 'http://localhost:8000/api';
+  static String baseUrl = AppConfig.apiBaseUrl;
+  // Platform.isAndroid
+  //     ? 'http://10.0.2.2:8000/api'
+  //     : 'http://localhost:8000/api';
 
   static Future<List<Category>> getCategories() async {
     try {

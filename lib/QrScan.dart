@@ -79,7 +79,6 @@ class _QrScanPageState extends State<QrScanPage> {
                 ),
                 title: Row(
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red),
                     SizedBox(width: 10),
                     Text('Buku Tidak Ditemukan'),
                   ],
@@ -90,7 +89,7 @@ class _QrScanPageState extends State<QrScanPage> {
                     Icon(Icons.error_outline, size: 100, color: Colors.red),
                     SizedBox(height: 16),
                     Text(
-                      'QR Code yang dipindai tidak terdaftar dalam database. Silakan coba QR Code lain.',
+                      'QR Code tidak dikenali, Pastikan memindai dengan QR Code yang sesuai.',
                       textAlign: TextAlign.center,
                     ),
                   ],

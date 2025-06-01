@@ -1,15 +1,19 @@
 import 'dart:convert';
+import 'package:easy_lib/config/appConfig.dart';
+import 'package:easy_lib/models/category.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io' show Platform;
 import 'package:easy_lib/models/book.dart';
 
 class BookService {
-  static String baseUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:8000/api'
-      : 'http://localhost:8000/api';
+  static String baseUrl = AppConfig.apiBaseUrl;
+  // Platform.isAndroid
+  //     ? 'http://10.0.2.2:8000/api'
+  //     : 'http://localhost:8000/api';
 
   // Get all books with optional search and category filters
-  static Future<List<Book>> getBooks({String? search, int? categoryId}) async {
+  static Future<List<Book>> getBooks(
+      {String? search, int? categoryId, String? categoryName}) async {
     try {
       String url = '$baseUrl/books';
 

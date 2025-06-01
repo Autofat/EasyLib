@@ -13,7 +13,8 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   Book? book;
-  bool isLoading = true;
+  bool isLoading = false;
+  bool isProcessing = false;
   String? errorMessage;
   bool isBookNotFound = false;
 
@@ -29,6 +30,18 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _loadBookDetails();
+  }
+
+  void _showLoadingOverlay() {
+    if (!isLoading) {
+      setState(() => isLoading = true);
+    }
+  }
+
+  void _hideLoadingOverlay() {
+    if (isLoading) {
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> _loadBookDetails() async {
@@ -319,11 +332,22 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              // Changed from Row to Wrap// Add spacing between items
               children: [
-                _buildDetailItem('Nomor Panggil', book!.kodeBuku),
-                _buildDetailItem('Ketersediaan', '${book!.stokBuku} tersedia'),
-                _buildDetailItem('Penerbit', book!.penerbit),
+                SizedBox(
+                  width: 100, // Fixed width for each item
+                  child: _buildDetailItem('Kode', book!.kodeBuku),
+                ),
+                SizedBox(
+                  width: 100,
+                  child: _buildDetailItem('Stok', '${book!.stokBuku}'),
+                ),
+                SizedBox(
+                  width: 100,
+                  child: _buildDetailItem('Penerbit', book!.penerbit),
+                ),
               ],
             ),
           ),
@@ -338,16 +362,21 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       children: [
         Text(
           label,
-          style:
-              GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.normal),
+          style: GoogleFonts.poppins(
+            fontSize: 15, // Reduced font size
+            fontWeight: FontWeight.normal,
+          ),
+          overflow: TextOverflow.ellipsis, // Add ellipsis for long text
         ),
-        SizedBox(height: 5),
+        SizedBox(height: 4),
         Text(
           value,
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 14, // Reduced font size
             fontWeight: FontWeight.bold,
           ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2, // Allow up to 2 lines for the value
         ),
       ],
     );
@@ -431,103 +460,114 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   }
 
   void _showConfirmationDialog(BuildContext context) {
+    if (isProcessing) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Konfirmasi Peminjaman'),
-          content: Text('Apakah Anda yakin?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Tidak'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-
-                if (!mounted) return;
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return Center(child: CircularProgressIndicator());
-                  },
-                );
-
-                try {
-                  final result = await PeminjamanService.borrowBook(book!.id);
-                  Navigator.of(context).pop();
-                  if (result['success']) {
-                    setState(() {
-                      isBorrowed = true;
-                      borrowId = result['data']['id'];
-                    });
-                    _showSuccessDialog(context, result['message']);
-                  } else {
-                    _showErrorDialog(context, result['message']);
-                  }
-                } catch (e) {
-                  if (!mounted) return;
-                  Navigator.of(context).pop();
-                  _showErrorDialog(context, 'Terjadi kesalahan: $e');
-                }
-              },
-              child: Text('Ya'),
-            ),
-          ],
-        );
-      },
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Konfirmasi Peminjaman'),
+        content: Text('Apakah Anda yakin?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Tidak'),
+          ),
+          TextButton(
+            onPressed: () => _handleBorrowing(dialogContext),
+            child: Text('Ya'),
+          ),
+        ],
+      ),
     );
   }
 
-  void _showReturnConfirmationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Konfirmasi Pengembalian'),
-          content: Text('Apakah Anda yakin ingin mengembalikan buku ini?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Tidak'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return Center(child: CircularProgressIndicator());
-                  },
-                );
+  Future<void> _handleBorrowing(BuildContext dialogContext) async {
+    if (isProcessing) return;
 
-                try {
-                  final result = await PeminjamanService.returnBook(borrowId!);
-                  Navigator.of(context).pop();
-                  if (result['success']) {
-                    setState(() {
-                      isBorrowed = false;
-                      borrowId = null;
-                    });
-                    _showSuccessDialog(context, result['message']);
-                  } else {
-                    _showErrorDialog(context, result['message']);
-                  }
-                } catch (e) {
-                  Navigator.of(context).pop();
-                  _showErrorDialog(context, 'Terjadi kesalahan: $e');
-                }
-              },
-              child: Text('Ya'),
-            ),
-          ],
-        );
-      },
-    );
+    setState(() => isProcessing = true);
+    Navigator.pop(dialogContext);
+
+    try {
+      final result = await PeminjamanService.borrowBook(book!.id);
+
+      if (!mounted) return;
+
+      if (result['success']) {
+        setState(() {
+          isBorrowed = true;
+          borrowId = result['data']['id'];
+          isProcessing = false;
+        });
+        _showSuccessDialog(context, result['message']);
+      } else {
+        _showErrorDialog(context, result['message']);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorDialog(context, 'Terjadi kesalahan: $e');
+    } finally {
+      if (mounted) {
+        setState(() => isProcessing = false);
+      }
+    }
+  }
+
+  void _showReturnConfirmationDialog(BuildContext context) {
+    showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: Text('Konfirmasi Pengembalian'),
+        content: Text('Apakah Anda yakin ingin mengembalikan buku ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text('Tidak'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text('Ya'),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed ?? false) {
+        _handleReturnBook(context);
+      }
+    });
+  }
+
+  Future<void> _handleReturnBook(BuildContext context) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+
+      final result = await PeminjamanService.returnBook(borrowId!);
+
+      if (!mounted) return;
+      Navigator.pop(context); // Remove loading dialog
+
+      if (result['success']) {
+        setState(() {
+          isBorrowed = false;
+          borrowId = null;
+        });
+        _showSuccessDialog(context, result['message']);
+      } else {
+        _showErrorDialog(context, result['message']);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Remove loading dialog
+      _showErrorDialog(context, 'Terjadi kesalahan: $e');
+    }
   }
 
   void _showSuccessDialog(BuildContext context, String message) {

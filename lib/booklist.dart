@@ -10,8 +10,8 @@ class BookListPage extends StatefulWidget {
   final String? initialCategoryName;
 
   const BookListPage({
-    super.key, 
-    this.initialSearch, 
+    super.key,
+    this.initialSearch,
     this.initialCategoryId,
     this.initialCategoryName,
   });
@@ -31,28 +31,29 @@ class _BookListPageState extends State<BookListPage> {
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize from passed parameters
     if (widget.initialSearch != null && widget.initialSearch!.isNotEmpty) {
       searchController.text = widget.initialSearch!;
       searchQuery = widget.initialSearch!;
     }
-    
+
     if (widget.initialCategoryId != null) {
       selectedCategoryId = widget.initialCategoryId!;
     }
-    
-    if (widget.initialCategoryName != null && widget.initialCategoryName!.isNotEmpty) {
+
+    if (widget.initialCategoryName != null &&
+        widget.initialCategoryName!.isNotEmpty) {
       selectedCategoryName = widget.initialCategoryName!;
     }
-    
+
     // Add search listener
     searchController.addListener(() {
       setState(() {
         searchQuery = searchController.text;
       });
     });
-    
+
     // Initial fetch of books
     _fetchBooks();
   }
@@ -61,13 +62,14 @@ class _BookListPageState extends State<BookListPage> {
     setState(() {
       isLoading = true;
     });
-    
+
     try {
       List<Book> fetchedBooks = await BookService.getBooks(
         search: searchQuery,
         categoryId: selectedCategoryId > 0 ? selectedCategoryId : null,
+        categoryName: selectedCategoryName,
       );
-      
+
       setState(() {
         books = fetchedBooks;
         isLoading = false;
@@ -77,6 +79,16 @@ class _BookListPageState extends State<BookListPage> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  String _formatDate(String? date) {
+    if (date == null || date.isEmpty) return '-';
+    try {
+      final DateTime parsedDate = DateTime.parse(date);
+      return '${parsedDate.day.toString().padLeft(2, '0')}/${parsedDate.month.toString().padLeft(2, '0')}/${parsedDate.year}';
+    } catch (e) {
+      return date;
     }
   }
 
@@ -235,7 +247,7 @@ class _BookListPageState extends State<BookListPage> {
             style: GoogleFonts.poppins(fontSize: 14),
           ),
           Text(
-            'Tahun Terbit: ${book.tahunTerbit}',
+            'Tahun Terbit: ${_formatDate(book.tahunTerbit)}',
             style: GoogleFonts.poppins(fontSize: 14),
           ),
           Text(
@@ -252,7 +264,7 @@ class _BookListPageState extends State<BookListPage> {
           MaterialPageRoute(
             builder: (context) => BookDetailsPage(),
             settings: RouteSettings(
-              arguments: book.id,  // Passing the book ID to the details page
+              arguments: book.id, // Passing the book ID to the details page
             ),
           ),
         );
